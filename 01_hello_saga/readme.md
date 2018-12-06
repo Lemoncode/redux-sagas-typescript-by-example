@@ -40,12 +40,12 @@ after a given delay (main goal is to emulate sinchronizity).
 _./src/services/number-generator.service.ts_
 
 ```typescript
-let initialNumber = 2;
+let initialNumber = 0;
 
 export const generateNewNumber = () : Promise<number> => {
   const promise = new Promise<number>((resolve) => {
     setTimeout(() => {
-      initialNumber += 2;
+      initialNumber += 1;
       resolve(initialNumber)
     }, 500)
   });
