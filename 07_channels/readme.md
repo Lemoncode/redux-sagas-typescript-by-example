@@ -190,31 +190,31 @@ export const rootSaga = function* root() {
 
 - Time to jump into the ui side.
 
-- Let's create a component we will call it _bids-table.component.tsx_, it will just 
+- Let's create a component we will call it _currency-table.component.tsx_, it will just 
 fire the _Start Socket Subscription_ task.
 
-_./src/components/bids-table/bids-table.component.tsx_
+_./src/components/currency-table/currency-table.component.tsx_
 
 ```typescript
 import * as React from 'react';
 
 interface Props {
-  connectBidsSockets : () => void;
-  disconnectBidsSockets : () => void;
+  connectCurrencyUpdateSockets : () => void;
+  disconnectCurrencyUpdateSockets : () => void;
 }
 
-export class BidsTableComponent extends React.PureComponent<Props> {
+export class CurrencyTableComponent extends React.PureComponent<Props> {
   componentWillMount() {
-    this.props.connectBidsSockets();  
+    this.props.connectCurrencyUpdateSockets();  
   }
 
   componentWillUnmount() {
-    this.props.disconnectBidsSockets();  
+    this.props.disconnectCurrencyUpdateSockets();  
   }
 
   render() {
     return (
-      <h3>Bids Table component</h3>
+      <h3>Currency Table component</h3>
     )
   }
 }
@@ -224,26 +224,26 @@ export class BidsTableComponent extends React.PureComponent<Props> {
 the _START_SOCKET_SUBSCRIPTION_ action creator with the _startSocketConnection_ 
 component prop callback.
 
-_./src/components/bids-table/bids-table.container.tsx_
+_./src/components/currency-table/currency-table.container.tsx_
 
 ```typescript
 import {connect} from 'react-redux';
 import {State} from '../../reducers';
-import {BidsTableComponent} from './bids-table.component';
+import {CurrencyTableComponent} from './currency-table.component';
 import {startSocketSubscriptionAction, stopSocketSubscriptionAction} from '../../actions';
 
 const mapStateToProps = (state : State) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  connectBidsSockets: () => dispatch(startSocketSubscriptionAction()),
-  disconnectBidsSockets: () => dispatch(stopSocketSubscriptionAction()),
+  connectCurrencyUpdateSockets: () => dispatch(startSocketSubscriptionAction()),
+  disconnectCurrencyUpdateSockets: () => dispatch(stopSocketSubscriptionAction()),
 })
 
 export const BidsTableContainer = connect(
   mapStateToProps,
   mapDispatchToProps
-)(BidsTableComponent);
+)(CurrencyTableComponent);
 ```
 
 - Let's add the _BidsTableContainer_ to the components barrel.
@@ -253,7 +253,7 @@ _./src/components/index.ts_
 ```diff
 export {MyNumberBrowserContainer} from './my-number/browser/my-number-container';
 export {MyNumberSetterContainer} from './my-number/setter/my-number-setter.container';
-+ export {BidsTableContainer} from './bids-table/bids-table.container';
++ export {CurrencyTableContainer} from './currency-table/currency-table.container';
 ```
 
 - Let's add this container to the _main.tsx_ main component:
@@ -268,7 +268,7 @@ _./src/main.tsx_
 ReactDOM.render(
   <Provider store={store}>
     <>
-+     <BidsTableContainer/>
++     <CurrencyTableContainer/>
 +     <br/>    
       <MyNumberSetterContainer />
       <MyNumberBrowserContainer />    
@@ -395,7 +395,7 @@ npm start
 - On the redux side.
    - Let's add a model.
    - Let's add an action creator _onSocketMessageReceived_
-   - Let's create a _bids.reducers.ts_
+   - Let's create a _currencies.reducers.ts_
    - Let's register it.
 
 - We are going to add a simple typescript entity that will hold the currency deltas.
@@ -438,6 +438,52 @@ export const currencyUpdateReceivedAction : (update : CurrencyUpdate) => BaseAct
   payload: update,
  });
 ```
+
+- Let's create a _currencies.reducer.ts_
+
+_./src/reducers/currencies.reducer.ts_
+
+```typescript
+import { BaseAction, actionIds } from '../common';
+import { CurrencyUpdate } from '../model';
+
+export type CurrenciesState = CurrencyUpdate[];
+
+export const currenciesReducer = (state: CurrenciesState = [], action: BaseAction) => {
+  switch (action.type) {
+    case actionIds.CURRENCY_UPDATE_RECEIVED:
+      return handleCurrencyUpdateCompleted(state, action.payload); 
+  }
+
+  return state;
+}
+
+const handleCurrencyUpdateCompleted = (state : CurrenciesState, currencyUpdate : CurrencyUpdate) : CurrenciesState => {
+  const notUpdated = state.filter((currency) => currency.id != currencyUpdate.id);
+
+  return [currencyUpdate, ...notUpdated];
+```
+
+- Let's register it.
+
+__./src/reducers/index.ts_
+
+```diff
+import { combineReducers} from 'redux';
+import { myNumberCollectionReducer, MyNumberCollectionState } from './my-number.reducer';
++ import { currenciesReducer, CurrenciesState} from './currencies.reducer';
+
+export interface State {
+  myNumberCollectionState : MyNumberCollectionState;
++  currenciesState : CurrenciesState;
+};
+
+export const reducers = combineReducers<State>({
+  myNumberCollectionState: myNumberCollectionReducer,
++  currenciesState: currenciesReducer,
+});
+```
+
 
 - Let's move back on Sagas and replace our _console.log_ call with the _onSocketMessageReceived_
 actions call
