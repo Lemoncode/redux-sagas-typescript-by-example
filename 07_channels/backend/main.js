@@ -7,6 +7,7 @@ var io = require('socket.io')(server);
 var connectSocket = require('./socketIo');
 var simulateCurrencyUpdates = require('./simulateCurrencyUpdates');
 
+
 app.use(cors({origin: true, credentials: true}));
 
 var port = Number(process.env.npm_config_port) || 1337;
@@ -16,4 +17,5 @@ server.listen(port, function () {
 });
 
 const sockets = connectSocket(io);
+
 simulateCurrencyUpdates((data) => sockets.notifyClients('currency', data));

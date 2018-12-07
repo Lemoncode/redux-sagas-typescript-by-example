@@ -572,6 +572,106 @@ const mapStateToProps = (state : State) => ({
 
 > Excercise A: implement a getAllCurrencies message.
 
+Tips:
+
+On backend:
+
+## Excercise A:
+
+Create a listen.js file
+
+_listen.js_
+
+```javascript
+var currencyDb = require('./currencyDb');
+
+module.exports = function (socket) {
+  // Let's listen for the 'currencies' request then answer with a 'currencies'
+  // including the whole list
+  socket.on('currencies', () => {
+    console.log('currencies request');
+    currencyDb.find({}, (err, currenciesList) => {
+      socket.emit('currencies', currenciesList);
+    });
+  });
+}
+```
+
+On backend on main
+
+_./socketIo.js_
+
+```diff
++ var listen = require('./listen')
+
+let clients = [];
+
+const notifyClients = (msg, data) =>
+    clients.forEach(socket => socket.emit(msg, data));
+
+module.exports = (io) => {
+    io.on('connection', function (socket) {
+        clients.push(socket);
+
++        listen(socket);
+
+        socket.on('disconnect', () => {
+            clients = clients.filter((s) => s.id = socket.id);
+        });
+```
+On the front end side:
+
+- On the socket saga:
+
+- On Connection emit _currencies_ message.
+
+./src/sagas/socket.ts
+
+```diff
+  return new Promise((resolve, reject) => {
+    socket.on('connect', () => {  
++      socket.emit('currencies');          
+      resolve({ socket });
+    });
+```
+
+- Listen to Messages socket message, we stop here on a console log.
+
+./src/sagas/socket.ts
+
+```diff
+function subscribe(socket) {
+  return eventChannel(emit => {
+    socket.on('currency', (message) => {
+      console.log(message);
+      emit(currencyUpdateReceivedAction(message));
+    });
+
++   socket.on('currencies', (message) => {
++      console.log(message);
++   });
+
+    socket.on('disconnect', e => {
+      // TODO: handle
+    });
+    socket.on('error', error => {
+      // TODO: handle
+      console.log('Error while trying to connect, TODO: proper handle of this event');
+    });
+
+    return () => { };
+  });
+}
+```
+
+- Nex Steps:
+  - Create action that will replace all data.
+  - Create reducer
+  - Handle Action.
+  - No need to update the UI 
+
+## Excercise B:
+
 > Excercise B: Instead of replace and place on top, keep the original current position and keep
 the update immutable, plus implement a test on the reducers to ensure the update is immutable.
 

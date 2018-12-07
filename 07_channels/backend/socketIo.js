@@ -1,3 +1,5 @@
+var listen = require('./listen')
+
 let clients = [];
 
 const notifyClients = (msg, data) =>
@@ -6,6 +8,8 @@ const notifyClients = (msg, data) =>
 module.exports = (io) => {
     io.on('connection', function (socket) {
         clients.push(socket);
+
+        listen(socket);
 
         socket.on('disconnect', () => {
             clients = clients.filter((s) => s.id = socket.id);

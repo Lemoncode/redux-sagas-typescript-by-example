@@ -2,15 +2,16 @@ import * as ioClient from 'socket.io-client';
 import { all, fork, take, call, put, cancel } from 'redux-saga/effects';
 import { actionIds } from '../common';
 import { eventChannel } from 'redux-saga';
-import {currencyUpdateReceivedAction} from '../actions'
+import { currencyUpdateReceivedAction } from '../actions'
 
 function connect() {
   // Real life project extract this into an API module  
   const socket = ioClient.connect('http://localhost:1337/', null);
-  
+
   // We need to wrap the socket connection into a promise (socket returs callback)
   return new Promise((resolve, reject) => {
-    socket.on('connect', () => {            
+    socket.on('connect', () => {
+      socket.emit('currencies');
       resolve({ socket });
     });
 
@@ -27,6 +28,11 @@ function subscribe(socket) {
       console.log(message);
       emit(currencyUpdateReceivedAction(message));
     });
+
+    socket.on('currencies', (message) => {
+      console.log(message);
+    });
+
     socket.on('disconnect', e => {
       // TODO: handle
     });
@@ -54,25 +60,25 @@ function* handleIO(socket) {
 
 
 function* flow() {
-	while(true) {
-		yield take(actionIds.START_SOCKET_SUBSCRIPTION);
-		const {socket, error} = yield call(connect);
-		if(socket) {
+  while (true) {
+    yield take(actionIds.START_SOCKET_SUBSCRIPTION);
+    const { socket, error } = yield call(connect);
+    if (socket) {
       console.log('connection to socket succeeded');
       const ioTask = yield fork(handleIO, socket);
       yield take(actionIds.STOP_SOCKET_SUBSCRIPTION);
-      yield cancel(ioTask);      
-		} else {
-			console.log('error connecting');
+      yield cancel(ioTask);
+    } else {
+      console.log('error connecting');
     }
-    socket.disconnect();    
-	}
+    socket.disconnect();
+  }
 }
 
-export function *socketRootSaga() {
-	yield all([
-		fork(flow),
-	])
+export function* socketRootSaga() {
+  yield all([
+    fork(flow),
+  ])
 }
 
 
