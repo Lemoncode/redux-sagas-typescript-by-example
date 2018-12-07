@@ -20,7 +20,6 @@
     "lodash": "^4.17.3",
     "nedb": "^1.8.0",
     "node-oauth2-server": "^2.4.0",
-    "simple-odata-server": "git+https://github.com/klapek/node-simple-odata-server.git",
     "socket.io": "^1.7.3"
   }
 }
