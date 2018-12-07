@@ -3,6 +3,7 @@ export const actionIds = {
   GET_NUMBER_REQUEST_COMPLETED: '[1] NumberGenerator async service returned a new number.',
   START_SOCKET_SUBSCRIPTION: '[2] Start listening to the web socket',
   STOP_SOCKET_SUBSCRIPTION: '[3] Close socket connection',
+  CURRENCY_UPDATE_RECEIVED: '[5] Got a currency update from the server',
 }
 
 export interface BaseAction {

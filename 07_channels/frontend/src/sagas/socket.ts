@@ -2,6 +2,7 @@ import * as ioClient from 'socket.io-client';
 import { all, fork, take, call, put, cancel } from 'redux-saga/effects';
 import { actionIds } from '../common';
 import { eventChannel } from 'redux-saga';
+import {currencyUpdateReceivedAction} from '../actions'
 
 function connect() {
   // Real life project extract this into an API module  
@@ -24,7 +25,7 @@ function subscribe(socket) {
   return eventChannel(emit => {
     socket.on('currency', (message) => {
       console.log(message);
-      //emit(onMessageReceived(mapApiSimpleMessageToMessage(message)));
+      emit(currencyUpdateReceivedAction(message));
     });
     socket.on('disconnect', e => {
       // TODO: handle

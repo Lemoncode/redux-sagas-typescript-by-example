@@ -393,14 +393,67 @@ npm start
 - It's time to add some ui.
 
 - On the redux side.
+   - Let's add a model.
    - Let's add an action creator _onSocketMessageReceived_
    - Let's create a _bids.reducers.ts_
    - Let's register it.
 
+- We are going to add a simple typescript entity that will hold the currency deltas.
+
+_./src/model/index.ts_
+
+```typescript
+export interface CurrencyUpdate {
+  id: string;
+  currency : string;
+  change: string;
+}
+```
+
+- Let's add a new action id (currency udpate):
+
+_./src/common/index_
+
+```diff
+export const actionIds = {
+  GET_NUMBER_REQUEST_START: '[0] Request a new number to the NumberGenerator async service.',
+  GET_NUMBER_REQUEST_COMPLETED: '[1] NumberGenerator async service returned a new number.',
+  START_SOCKET_SUBSCRIPTION: '[2] Start listening to the web socket',
+  STOP_SOCKET_SUBSCRIPTION: '[3] Close socket connection',
++  CURRENCY_UPDATE_RECEIVED: '[5] Got a currency update from the server',
+}
+```
+
+- Let's add an action creator Let's add an action creator _onSocketMessageReceived_ (append
+this code at the end of the file)
+
+_./src/actions/index.ts_
+
+```typescript
+import { CurrencyUpdate } from '../model';
+// (...)
+
+export const currencyUpdateReceivedAction : (update : CurrencyUpdate) => BaseAction = (update) => ({
+  type: actionIds.CURRENCY_UPDATE_RECEIVED,
+  payload: update,
+ });
+```
+
 - Let's move back on Sagas and replace our _console.log_ call with the _onSocketMessageReceived_
 actions call
 
+_./src/sagas/socket.ts_
+
 ```diff
++ import {currencyUpdateReceivedAction} from '../actions'
+// ...
+
+function subscribe(socket) {
+  return eventChannel(emit => {
+    socket.on('currency', (message) => {
+      console.log(message);
++     emit(currencyUpdateReceivedAction(message));
+    });
 ``` 
 
 - On the UI side:

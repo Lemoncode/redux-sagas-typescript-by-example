@@ -1,4 +1,5 @@
 import {BaseAction, actionIds} from '../common';
+import { CurrencyUpdate } from '../model';
 
 export const numberRequestStartAction : () => BaseAction = () => ({
  type: actionIds.GET_NUMBER_REQUEST_START,
@@ -20,4 +21,7 @@ export const numberRequestCompletedAction : (n : number) => BaseAction = (number
   payload: null,
  });
  
- 
+export const currencyUpdateReceivedAction : (update : CurrencyUpdate) => BaseAction = (update) => ({
+type: actionIds.CURRENCY_UPDATE_RECEIVED,
+payload: update,
+});
