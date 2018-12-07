@@ -1,5 +1,5 @@
-var patientsDb = require('./patientsDb');
+var currenciesDb = require('./currencyDb');
 
 module.exports = {
-    patientsDb
+    currenciesDb
 };

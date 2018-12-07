@@ -1,13 +1,8 @@
-var patientsDb = require('./patientsDb');
+var currencyDb = require('./currencyDb');
 var _ = require('lodash');
 
 const eachXSeconds = 5000;
-const getRandomPatientId = (patientsList) => ({_id: patientsList[_.random(0, patientsList.length -1)]._id});
-
-function getRandomInt(lower, upper) {
-    //to create an even sample distribution
-    return Math.floor(lower + (Math.random() * (upper - lower + 1)));
-}
+const getRandomCurrency = (currencyList) => (currencyList[_.random(0, currencyList.length -1)]);
 
 function getRandomNumber(lower, upper) {
   //to create an even sample distribution
@@ -17,12 +12,12 @@ function getRandomNumber(lower, upper) {
 
 module.exports = (cb) => {
     setInterval(() => {
-        patientsDb.find({}, (err, patientsList) => {
-            const query = getRandomPatientId(patientsList);
+        currencyDb.find({}, (err, currencyList) => {
+            const query = getRandomCurrency(currencyList);
             const change = getRandomNumber(-1, 1);
             const value = {$set: {change}};
 
-            patientsDb.update(query, value);
+            currencyDb.update(query, value);
 
             const data = {id: query._id, currency: query.currency, change};
 

@@ -16,4 +16,4 @@ server.listen(port, function () {
 });
 
 const sockets = connectSocket(io);
-simulateHeartRates((data) => sockets.notifyClients('patients', data));
+simulateHeartRates((data) => sockets.notifyClients('currency', data));

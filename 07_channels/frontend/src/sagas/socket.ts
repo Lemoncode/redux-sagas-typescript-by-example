@@ -9,8 +9,7 @@ function connect() {
   
   // We need to wrap the socket connection into a promise (socket returs callback)
   return new Promise((resolve, reject) => {
-    socket.on('connect', () => {
-      socket.emit('messages');
+    socket.on('connect', () => {            
       resolve({ socket });
     });
 
@@ -23,7 +22,7 @@ function connect() {
 
 function subscribe(socket) {
   return eventChannel(emit => {
-    socket.on('patients', (message) => {
+    socket.on('currency', (message) => {
       console.log(message);
       //emit(onMessageReceived(mapApiSimpleMessageToMessage(message)));
     });
