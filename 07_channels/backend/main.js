@@ -5,7 +5,7 @@ var server = require('http').Server(app);
 var db = require('./database');
 var io = require('socket.io')(server);
 var connectSocket = require('./socketIo');
-var simulateHeartRates = require('./simulateHeartRates');
+var simulateHeartRates = require('./simulateCurrencyUpdates');
 
 app.use(cors({origin: true, credentials: true}));
 
