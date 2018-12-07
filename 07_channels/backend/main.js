@@ -19,4 +19,4 @@ server.listen(port, function () {
 });
 
 const sockets = connectSocket(io);
-simulateHeartRates(() => sockets.notifyClients('patients'));
+simulateHeartRates((data) => sockets.notifyClients('patients', data));

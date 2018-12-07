@@ -13,11 +13,14 @@ module.exports = (cb) => {
     setInterval(() => {
         patientsDb.find({}, (err, patientsList) => {
             const query = getRandomPatientId(patientsList);
-            const value = {$set: {hearthRate: getRandomInt(60, 130)}};
+            const newHearthBit = getRandomInt(60, 130);
+            const value = {$set: {hearthRate: newHearthBit}};
 
             patientsDb.update(query, value);
 
-            cb();
+            const data = {id: query._id, hearthRate: newHearthBit};
+
+            cb(data);
         });
     }, each5Second);
 };

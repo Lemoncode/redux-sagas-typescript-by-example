@@ -1,7 +1,7 @@
 let clients = [];
 
-const notifyClients = (msg) =>
-    clients.forEach(socket => socket.emit(msg));
+const notifyClients = (msg, data) =>
+    clients.forEach(socket => socket.emit(msg, data));
 
 module.exports = (io) => {
     io.on('connection', function (socket) {
