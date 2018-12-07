@@ -280,12 +280,133 @@ ReactDOM.render(
 - Let's launch the project and include breakpoints in the _socket_ saga to check that
 connection is succesfully established.
 
+First we will launch our socket backend.
+
 ```bash
+cd backend
+npm start
+```
+
+Now let's launch the front end:
+
+```bash
+cd frontend
 npm start
 ```
 
 > We can check as well the browser console and check the connection traces we have added.
 
+- Time to move forward, now we want to read from the socket incoming data.
+
+
+- On the sagas side: Let's start reading data from the socket, in order to do this:  
+  - On the sagas side, we will start by creating a channel:
+    - We will wrap it in a _subscribe_ function, passing as parameter the _socket_ 
+    connection.
+    - This channel exposes an _emit_ param that will let us communicate between the 
+    channel itself and subscribers of this channel.
+    - We will read for the socket _messages_ that we will recieve and let other
+    generic / useful events (disconnection, error...)
+
+The main message we are going to liste is "patients" , this will call an action creator
+_onSocketMessageReceived_ that will dispatch the message.
+
+Let's add this function right after the _connect_ function
+
+_./src/sagas/socket.ts_
+
+```typescript
+function subscribe(socket) {
+  return eventChannel(emit => {
+    socket.on('patients', (message) => {
+      console.log(message);      
+    });
+    socket.on('disconnect', e => {
+      // TODO: handle
+    });
+    socket.on('error', error => {
+      // TODO: handle
+      console.log('Error while trying to connect, TODO: proper handle of this event');
+    });
+
+    return () => { };
+  });
+}
+```
+
+> About the _return () => {}_ statement is a function that is called on channel closed / cleanup
+(free resources).
+
+- Let's create a _read_ saga, that will subscribe to the _eventChannel_ we have created before.
+
+_./src/sagas/socket.ts_
+
+```typescript
+function* read(socket) {
+  const channel = yield call(subscribe, socket);
+  while (true) {
+    let action = yield take(channel);
+    yield put(action);
+  }
+}
+```
+
+- Altough in this task we are going to read and not write, we will create an
+  IO saga that would be able to launch read and write tasks.
+
+_./src/sagas/socket.ts_
+
+```typescript
+function* handleIO(socket) {
+  yield fork(read, socket);
+  // TODO in the future we could add here a write fork
+}
+```
+
+- We will call this _handleIO_ saga from the _flow_ saga (remember to add the redux-saga
+needed imports, e.g. _cancel_.
+
+```diff
+function* flow() {
+	while(true) {
+		yield take(actionIds.START_SOCKET_SUBSCRIPTION);
+		const {socket, error} = yield call(connect);
+		if(socket) {
++			console.log('connection to socket succeeded');
++     const ioTask = yield fork(handleIO, socket);
++     yield take(actionIds.STOP_SOCKET_SUBSCRIPTION);
++     yield cancel(ioTask);
+		} else {
+			console.log('error connecting');
+		}
++   socket.disconnect();    
+	}
+}
+```
+
+- Let's give a quick try (debugging again...). Remember to fire as well the server socket.
+
+```
+npm start
+```
+
+- It's time to add some ui.
+
+- On the redux side.
+   - Let's add an action creator _onSocketMessageReceived_
+   - Let's create a _bids.reducers.ts_
+   - Let's register it.
+
+- Let's move back on Sagas and replace our _console.log_ call with the _onSocketMessageReceived_
+actions call
+
+```diff
+``` 
+
+- On the UI side:
+   - Let's add a _bids_ property to the bids component.
+   - Let's display this bids component.
+   - Let's connect the bids container with the reducer property.
 
 
 
