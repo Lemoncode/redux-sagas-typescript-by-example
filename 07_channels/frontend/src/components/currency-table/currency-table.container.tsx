@@ -4,6 +4,7 @@ import {CurrencyTableComponent} from './currency-table.component';
 import {startSocketSubscriptionAction, stopSocketSubscriptionAction} from '../../actions';
 
 const mapStateToProps = (state : State) => ({
+  currencyCollection: state.currenciesState,
 })
 
 const mapDispatchToProps = (dispatch) => ({

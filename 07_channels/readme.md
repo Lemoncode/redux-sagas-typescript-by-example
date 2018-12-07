@@ -503,10 +503,77 @@ function subscribe(socket) {
 ``` 
 
 - On the UI side:
-   - Let's add a _bids_ property to the bids component.
-   - Let's display this bids component.
-   - Let's connect the bids container with the reducer property.
+   - Let's add a _currencies_ property to the currencies table component.
+   - Let's display a table showing the current currencies values.      
+   - Let's connect the bids container with the reducer property (currencies).
 
+- Let's add a _currencies_ property to the currencies table component.
+
+_./src/components/currency-table/currency-table.component.tsx_
+
+```diff
+import * as React from 'react';
++ import {CurrencyUpdate} from '../../model';
+
+interface Props {
+  connectCurrencyUpdateSockets : () => void;
+  disconnectCurrencyUpdateSockets : () => void;
++ currencyCollection: CurrencyUpdate[];  
+}
+```  
+
+- Let's display a table showing the current currencies values.      
+
+_./src/components/currency-table/currency-table.component.tsx_
+
+```diff
+  render() {
+    return (
+-      <h3>Bids Table component</h3>
++      <table>
++        <tr>
++          <th>
++            Currency
++          </th>
++          <th>
++            Change
++          </th>
++        </tr>
++        {this.props.currencyCollection.map(
++          currency =>
++            <tr key={currency.id}>
++              <td>{currency.currency}</td>
++              <td>{currency.change}</td>
++            </tr>
++        )
++        }
++      </table>
+    )
+  }
+```
+
+- Let's connect the currency container with the reducer property (currencies).
+
+_./src/components/currency-table/currency-table.container_
+
+```diff
+import {connect} from 'react-redux';
+import {State} from '../../reducers';
+import {CurrencyTableComponent} from './currency-table.component';
+import {startSocketSubscriptionAction, stopSocketSubscriptionAction} from '../../actions';
+
+const mapStateToProps = (state : State) => ({
++   currencyCollection: state.currenciesState,  
+})
+```
+
+- Let's run the sample.
+
+
+> Excercise A: implement a getAllCurrencies message.
+
+> Excercise B: Instead of replace and place on top, keep the original current position and keep
+the update immutable, plus implement a test on the reducers to ensure the update is immutable.
 
 
 
