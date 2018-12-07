@@ -5,7 +5,7 @@ var server = require('http').Server(app);
 var db = require('./database');
 var io = require('socket.io')(server);
 var connectSocket = require('./socketIo');
-var simulateHeartRates = require('./simulateCurrencyUpdates');
+var simulateCurrencyUpdates = require('./simulateCurrencyUpdates');
 
 app.use(cors({origin: true, credentials: true}));
 
@@ -16,4 +16,4 @@ server.listen(port, function () {
 });
 
 const sockets = connectSocket(io);
-simulateHeartRates((data) => sockets.notifyClients('currency', data));
+simulateCurrencyUpdates((data) => sockets.notifyClients('currency', data));
