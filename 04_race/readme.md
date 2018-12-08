@@ -51,7 +51,7 @@ export interface BaseAction {
 }
 ```
 
-- Now let's create the action creatior that will generate the cancel action (append to the body of the
+- Now let's create the action creator that will generate the cancel action (append to the body of the
 action index file):
 
 ```typescript
