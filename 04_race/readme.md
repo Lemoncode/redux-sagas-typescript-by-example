@@ -54,6 +54,8 @@ export interface BaseAction {
 - Now let's create the action creator that will generate the cancel action (append to the body of the
 action index file):
 
+_./src/actions/index.ts_
+
 ```typescript
 export const cancelOnGoingNumberRequestAction : () => BaseAction = () => ({
   type: actionIds.CANCEL_ONGOING_NUMBER_REQUEST,
