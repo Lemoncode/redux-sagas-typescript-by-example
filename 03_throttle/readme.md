@@ -1,4 +1,4 @@
-# 02 Take latest
+# 03 Throttle
 
 # Summary
 
