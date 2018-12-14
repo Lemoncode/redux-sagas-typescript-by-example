@@ -19,8 +19,36 @@ __00 Boilerplate:__
 + Full typescript setup.
 
 __01 Hello Saga__
-
+---
 In this sample we are going to install redux-saga library, add all the setup code needed and create a simple service. We are going to setup redux saga, create actions and create a saga.
+
+
+## Summary Steps
+ + Install the library
+ + Create a service
+ + Setup the saga
+ + Define actions
+ + Create sagas and setup root sagas and middlewares
+ + Create the UI
+
+ __02 Take latest__
+ ---
+In this sample we are going to start exploring redux saga helper effects.
+
+## Summary steps
+ + Install the dependencies
+ + Replace  takeEvery with takeLatest yield
+ + Run and test the project 
+
+ __03 Throttle__
+---
+
+In this sample we are going to continue exploring redux saga helper effects.
+ ## Summary steps
+ + Install the dependencies
+ + Replace takeLatest with throttle yield
+ + Run and test the project 
+ 
 
 
 
