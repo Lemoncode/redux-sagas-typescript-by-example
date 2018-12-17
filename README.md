@@ -88,7 +88,7 @@ several async requests to be completed.
  + Wait for two services to be completed.
  + Run and test the project 
 
-## 06 Channels
+## 07 Channels
 
 Saga's channels are a powerful mechanism for real time communication, in this sample we are going to establish a 
 connection with a fake currency websocket service,
