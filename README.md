@@ -77,15 +77,14 @@ several async requests to be completed.
  + Wait for two services to be completed.
  + Run and test the project 
 
-## 06 All
+## 06 Confirmation
 
-_All_ saga effect is similar to _promise.all_ it let us wait for
-several async requests to be completed.
+Combine a UI confirmation task with an asynchronous request.
 
 ### Summary steps
  + Install the dependencies.
- + Add a new service.
- + Wait for two services to be completed.
+ + Add a modal dialog.
+ + Add a yield to the saga waiting for the dialog confirmation.
  + Run and test the project 
 
 ## 07 Channels
