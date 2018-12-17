@@ -14,8 +14,7 @@ You will need to run both server and client side.
 
 # Steps
 
-- We will take as starting point _01_hello_saga_ let's copy the content of that project 
-and execute from bash / cmd the following command:
+- We will take as starting point _01_hello_saga_ let's create a subfolder named _frontend_ and copy the content of that project  and execute from bash / cmd the following command:
 
 Change directory to _./frontend_ and execute:
 
@@ -23,7 +22,7 @@ Change directory to _./frontend_ and execute:
 npm install
 ```
 
-Change directory to _./backend_ and execute:
+- Now we need a mock backed, le'ts download and the source code from the route _https://github.com/Lemoncode/redux-sagas-typescript-by-example/tree/master/07_channels/backend_ Change directory to _./backend_ and execute:
 
 ```bash
 npm install
@@ -44,21 +43,9 @@ npm start
 adding extra steps to this sample we won't bother about configuring enviroment variables
 for this project).
 
-Steps:
-
-0. Let's install _socket.io_ library to read fro the websocket.
-
-1. We will define two tasks: 
- 
- - START_SOCKET_SUBSCRIPTION: Will be called on the _componentWillMount_ event of the table that will display that data in real time.
- 
- - STOP_SOCKET_SUBSCRIPTION: Will be called on the _componentWillUnmount_ event of of the table that will display that data in real time.
-
-2. We will c
-
 Le'ts get started
 
-- First let's install _socket.io_ library (under frontend folder) and it's type definition:
+- For this sample we will consume a websocket feed, First let's install _socket.io_ library (under frontend folder) and it's type definition:
 
 ```bash
 npm install socket.io-client --save
@@ -87,7 +74,7 @@ export interface BaseAction {
 ```
 
 - Now let's define the action creators (real life project would pass extra params in this 
-action creators). Add this content to the bottom of the file.
+action creators). Append this content to the bottom of the file.
 
 _./actions/index.ts_
 
@@ -186,7 +173,7 @@ export const rootSaga = function* root() {
 }
 ```
 
-- Right now let's make a quick stop and check that we are able to establish connection with the socket.
+- Right now let's make a quick stop and check that we are able to establish a connection with the websocket.
 
 - Time to jump into the ui side.
 
@@ -220,11 +207,11 @@ export class CurrencyTableComponent extends React.PureComponent<Props> {
 }
 ```
 
-- Let's create a container we will call it _bids-table.container.tsx_,it will connect
+- Let's create a container we will call it currency-table.container.tsx_,it will connect
 the _START_SOCKET_SUBSCRIPTION_ action creator with the _startSocketConnection_ 
 component prop callback.
 
-_./src/components/currency-table/currency-table.container.tsx_
+_./src/components/currency-table/currency-table.container.ts_
 
 ```typescript
 import {connect} from 'react-redux';
@@ -240,13 +227,13 @@ const mapDispatchToProps = (dispatch) => ({
   disconnectCurrencyUpdateSockets: () => dispatch(stopSocketSubscriptionAction()),
 })
 
-export const BidsTableContainer = connect(
+export const CurrencyTableContainer = connect(
   mapStateToProps,
   mapDispatchToProps
 )(CurrencyTableComponent);
 ```
 
-- Let's add the _BidsTableContainer_ to the components barrel.
+- Let's add the _CurrencyTableContainer_ to the components barrel.
 
 _./src/components/index.ts_
 
@@ -262,7 +249,7 @@ _./src/main.tsx_
 
 ```diff
 - import { MyNumberBrowserContainer, MyNumberSetterContainer } from './components';
-+ import { MyNumberBrowserContainer, MyNumberSetterContainer, BidsTableContainer } from './components';
++ import { MyNumberBrowserContainer, MyNumberSetterContainer, CurrencyTableContainer } from './components';
 //(...)
 
 ReactDOM.render(
@@ -280,7 +267,7 @@ ReactDOM.render(
 - Let's launch the project and include breakpoints in the _socket_ saga to check that
 connection is succesfully established.
 
-First we will launch our socket backend.
+First we will launch our socket backend (if we don't have it alreay running)..
 
 ```bash
 cd backend
@@ -294,7 +281,12 @@ cd frontend
 npm start
 ```
 
-> We can check as well the browser console and check the connection traces we have added.
+> We can check as well the browser console and check the connection traces we have added, you should
+be able to read in the browser console:
+
+```
+connection to socket succeeded
+```
 
 - Time to move forward, now we want to read from the socket incoming data.
 
@@ -308,30 +300,50 @@ npm start
     - We will read for the socket _messages_ that we will recieve and let other
     generic / useful events (disconnection, error...)
 
-The main message we are going to liste is "patients" , this will call an action creator
+The main message we are going to listen is "currency" , this will call an action creator
 _onSocketMessageReceived_ that will dispatch the message.
 
 Let's add this function right after the _connect_ function
 
 _./src/sagas/socket.ts_
 
-```typescript
-function subscribe(socket) {
-  return eventChannel(emit => {
-    socket.on('patients', (message) => {
-      console.log(message);      
-    });
-    socket.on('disconnect', e => {
-      // TODO: handle
-    });
-    socket.on('error', error => {
-      // TODO: handle
-      console.log('Error while trying to connect, TODO: proper handle of this event');
+```diff
++ import { eventChannel } from "redux-saga";
+
+function connect() {
+  // Real life project extract this into an API module
+  const socket = ioClient.connect('http://localhost:1337/', null);
+
+  // We need to wrap the socket connection into a promise (socket returs callback)
+  return new Promise((resolve, reject) => {
+    socket.on('connect', () => {
+      socket.emit('messages');
+      resolve({ socket });
     });
 
-    return () => { };
-  });
+    socket.on('connect_error', err => {
+      console.log('connect failed :-(');
+      reject(new Error('ws:connect_failed '));
+    });
+  }).catch(error => ({ socket, error }));
 }
+
++ function subscribe(socket) {
++  return eventChannel(emit => {
++    socket.on('currency', (message) => {
++      console.log(message);      
++    });
++    socket.on('disconnect', e => {
++      // TODO: handle
++    });
++    socket.on('error', error => {
++      // TODO: handle
++      console.log('Error while trying to connect, TODO: proper handle of this event');
++    });
++
++    return () => { };
++  });
++ }
 ```
 
 > About the _return () => {}_ statement is a function that is called on channel closed / cleanup
@@ -341,14 +353,36 @@ function subscribe(socket) {
 
 _./src/sagas/socket.ts_
 
-```typescript
-function* read(socket) {
-  const channel = yield call(subscribe, socket);
-  while (true) {
-    let action = yield take(channel);
-    yield put(action);
-  }
+```diff
+- import { all, fork, take, call, put } from "redux-saga/effects";
++ import { all, fork, take, call, put } from "redux-saga/effects";
+
+function subscribe(socket) {
+  return eventChannel(emit => {
+    socket.on("currency", message => {
+      console.log(message);
+    });
+    socket.on("disconnect", e => {
+      // TODO: handle
+    });
+    socket.on("error", error => {
+      // TODO: handle
+      console.log(
+        "Error while trying to connect, TODO: proper handle of this event"
+      );
+    });
+
+    return () => {};
+  });
 }
+
++ function* read(socket) {
++  const channel = yield call(subscribe, socket);
++  while (true) {
++    let action = yield take(channel);
++    yield put(action);
++  }
++}
 ```
 
 - Altough in this task we are going to read and not write, we will create an
@@ -356,17 +390,28 @@ function* read(socket) {
 
 _./src/sagas/socket.ts_
 
-```typescript
-function* handleIO(socket) {
-  yield fork(read, socket);
-  // TODO in the future we could add here a write fork
+```diff
+function* read(socket) {
+  const channel = yield call(subscribe, socket);
+  while (true) {
+    let action = yield take(channel);
+    yield put(action);
+  }
 }
+
++ function* handleIO(socket) {
++  yield fork(read, socket);
++  // TODO in the future we could add here a write fork
++ }
 ```
 
 - We will call this _handleIO_ saga from the _flow_ saga (remember to add the redux-saga
 needed imports, e.g. _cancel_.
 
 ```diff
+- import { all, fork, take, call, put } from "redux-saga/effects";
++ import { all, fork, take, call, put, cancel } from "redux-saga/effects";
+
 function* flow() {
 	while(true) {
 		yield take(actionIds.START_SOCKET_SUBSCRIPTION);
@@ -376,10 +421,10 @@ function* flow() {
 +     const ioTask = yield fork(handleIO, socket);
 +     yield take(actionIds.STOP_SOCKET_SUBSCRIPTION);
 +     yield cancel(ioTask);
++     socket.disconnect();    
 		} else {
 			console.log('error connecting');
-		}
-+   socket.disconnect();    
+		}   
 	}
 }
 ```
@@ -412,7 +457,7 @@ export interface CurrencyUpdate {
 
 - Let's add a new action id (currency udpate):
 
-_./src/common/index_
+_./src/common/index.ts_
 
 ```diff
 export const actionIds = {
@@ -462,6 +507,7 @@ const handleCurrencyUpdateCompleted = (state : CurrenciesState, currencyUpdate :
   const notUpdated = state.filter((currency) => currency.id != currencyUpdate.id);
 
   return [currencyUpdate, ...notUpdated];
+}
 ```
 
 - Let's register it.
@@ -491,7 +537,7 @@ actions call
 _./src/sagas/socket.ts_
 
 ```diff
-+ import {currencyUpdateReceivedAction} from '../actions'
++ import {currencyUpdateReceivedAction} from '../actions';
 // ...
 
 function subscribe(socket) {
@@ -529,24 +575,28 @@ _./src/components/currency-table/currency-table.component.tsx_
 ```diff
   render() {
     return (
--      <h3>Bids Table component</h3>
+-      <h3>Currency Table component</h3>
 +      <table>
-+        <tr>
-+          <th>
-+            Currency
-+          </th>
-+          <th>
-+            Change
-+          </th>
-+        </tr>
-+        {this.props.currencyCollection.map(
-+          currency =>
-+            <tr key={currency.id}>
-+              <td>{currency.currency}</td>
-+              <td>{currency.change}</td>
-+            </tr>
-+        )
-+        }
++         <thead>
++          <tr>
++            <th>
++              Currency
++            </th>
++            <th>
++              Change
++            </th>
++          </tr>
++        </thead>
++        <tbody>
++          {this.props.currencyCollection.map(
++            currency =>
++              <tr key={currency.id}>
++                <td>{currency.currency}</td>
++                <td>{currency.change}</td>
++              </tr>
++          )
++          }
++        </tbody>
 +      </table>
     )
   }
