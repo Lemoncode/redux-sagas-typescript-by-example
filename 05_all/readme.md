@@ -67,7 +67,7 @@ function* requestNewGeneratedNumber() {
 -  const generatedNumber = yield call(generateNewNumber);
 +  const {generatedNumber, generatedHigherNumber} = yield all({
 +       generatedNumber: call(generateNewNumber),
-+       generatedHigherNumber: call(generatedHigherNumber),
++       generatedHigherNumber: call(generateHigherNewNumber),
 +  })
   yield put(numberRequestCompletedAction(generatedNumber))
 + yield put(numberRequestCompletedAction(generatedHigherNumber))
