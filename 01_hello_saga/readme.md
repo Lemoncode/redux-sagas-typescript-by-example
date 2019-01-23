@@ -189,7 +189,7 @@ function* requestNewGeneratedNumber() {
 }
 ```
 
-What in the hell are we doin hell?
+_What in the hell are we doing here?_
 
 - A first saga is just listening for the _requestNewGeneratedNumber_ action.
 - Once the action is fired, we fire a second saga that will call _generateNewNumber_,
