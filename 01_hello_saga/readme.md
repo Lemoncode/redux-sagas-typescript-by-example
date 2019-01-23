@@ -313,3 +313,9 @@ ReactDOM.render(
   </Provider>,
   document.getElementById('root'));
 ```
+
+- Now if we start the project we can click on the request new number button and a new number will be added to the list of numbers.
+
+```bash
+npm start
+```
