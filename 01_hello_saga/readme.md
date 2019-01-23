@@ -210,7 +210,7 @@ import { numberRequestCompletedAction } from '../actions'
 import { actionIds } from '../common'
 
 + // Register all your watchers
-+ export const rootSaga = default function* root() {
++ export const rootSaga = function* root() {
 +   yield all([
 +     fork(watchNewGeneratedNumberRequestStart),
 +   ])
