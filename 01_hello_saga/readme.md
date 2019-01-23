@@ -30,7 +30,7 @@ npm install
 - Time to install redux saga:
 
 ```
-npm install redux-saga 
+npm install redux-saga --save
 ```
 > No need to install @types, they are already included in the library.
 
