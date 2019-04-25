@@ -19,22 +19,20 @@ export class CurrencyTableComponent extends React.PureComponent<Props> {
   render() {
     return (
       <table>
-        <tr>
-          <th>
-            Currency
-          </th>
-          <th>
-            Change
-          </th>
-        </tr>
-        {this.props.currencyCollection.map(
-          currency =>
+        <thead>
+          <tr>
+            <th>Currency</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.props.currencyCollection.map(currency => (
             <tr key={currency.id}>
               <td>{currency.currency}</td>
               <td>{currency.change}</td>
             </tr>
-        )
-        }
+          ))}
+        </tbody>
       </table>
     )
   }

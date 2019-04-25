@@ -30,7 +30,7 @@ npm install
 - Time to install redux saga:
 
 ```
-npm install redux-saga 
+npm install redux-saga --save
 ```
 > No need to install @types, they are already included in the library.
 
@@ -127,12 +127,12 @@ _./src/actions/index.ts_
 ```typescript
 import {BaseAction, actionIds} from '../common';
 
-export const numberRequestStartAction : () => BaseAction = () => ({
+export const numberRequestStartAction = () : BaseAction => ({
  type: actionIds.GET_NUMBER_REQUEST_START,
  payload: null,
 });
 
-export const numberRequestCompletedAction : (n : number) => BaseAction = (numberGenerated) => ({
+export const numberRequestCompletedAction = (numberGenerated : number) : BaseAction => ({
   type: actionIds.GET_NUMBER_REQUEST_COMPLETED,
   payload: numberGenerated,
  });
@@ -189,7 +189,7 @@ function* requestNewGeneratedNumber() {
 }
 ```
 
-What in the hell are we doin hell?
+_What in the hell are we doing here?_
 
 - A first saga is just listening for the _requestNewGeneratedNumber_ action.
 - Once the action is fired, we fire a second saga that will call _generateNewNumber_,
@@ -210,7 +210,7 @@ import { numberRequestCompletedAction } from '../actions'
 import { actionIds } from '../common'
 
 + // Register all your watchers
-+ export const rootSaga = default function* root() {
++ export const rootSaga = function* root() {
 +   yield all([
 +     fork(watchNewGeneratedNumberRequestStart),
 +   ])
@@ -312,4 +312,10 @@ ReactDOM.render(
     </>
   </Provider>,
   document.getElementById('root'));
+```
+
+- Now if we start the project we can click on the request new number button and a new number will be added to the list of numbers.
+
+```bash
+npm start
 ```
