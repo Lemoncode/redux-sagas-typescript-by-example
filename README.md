@@ -2,7 +2,7 @@
 
 Set of step by step guided samples to help you get started with [redux sagas](https://github.com/redux-saga/redux-saga) + typescript.
 
-Each of the examples implemented, contains a guide step step readme.md file that will let you code each of the examples by your own.
+Each of the examples implemented, contains a guide step by step readme.md file that will let you code each of the examples by your own.
 
 # Demos:
 ___
@@ -10,7 +10,7 @@ ___
 ## 00 Boilerplate:
 
 
-### Inital repo boiler plate sample, includes:
+### Initial repo boiler plate sample, includes:
 
 + React boiler plate.
 + Redux boiler plate.
@@ -56,7 +56,7 @@ time.
 ## 04 Race
 
 In this sample we are going to continue exploring redux saga helper effects. The race effect will let us do things like: 
-make a request to two services in paralell and process the respone on the first service to answer, or let the user cancel
+make a request to two services in parallel and process the response on the first service to answer, or let the user cancel
 and on going request (race between async promise in progress vs
 user hitting cancel button).
 

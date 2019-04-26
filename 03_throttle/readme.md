@@ -25,7 +25,7 @@ How can we achieve a behavior like this? _throttle_ is your friend.
 
 # Steps
 
-- We will take as starting point *02_take_latest* let's copy the content of that project 
+- We will take as starting point *02_take_latest*. Let's copy the content of that project 
 and execute from bash / cmd the following command:
 
 ```bash

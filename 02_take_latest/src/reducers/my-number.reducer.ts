@@ -6,7 +6,6 @@ export const myNumberCollectionReducer = (state: MyNumberCollectionState = [0], 
   switch (action.type) {
     case actionIds.GET_NUMBER_REQUEST_COMPLETED:
       return handleGetNumberRequestCompleted(state, action.payload);
-    break;
   }
 
   return state;

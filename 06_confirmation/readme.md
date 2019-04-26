@@ -34,7 +34,7 @@ export interface BaseAction {
 }
 ```
 
-- Let's generate the action creator for this (append this file to the bottom..
+- Let's generate the action creator for this (append this to the bottom of the file).
 
 _./src/actions/index.ts_
 
@@ -80,8 +80,9 @@ interface Props {
 + }
 ```
 
-- Let's add a very simple confirmation section on the component.Whenever the user clicks on the generate new number, the tasks will be launched and the confirmation section will be shown.
+- Let's add a very simple confirmation section on the component. Whenever the user clicks on the generate new number, the tasks will be launched and the confirmation section will be shown.
 
+_./src/components/my-number/setter/my-number-setter-component.tsx_
 
 ```diff
 export class MyNumberSetterComponent extends React.PureComponent<Props, State> { 
@@ -117,6 +118,8 @@ export class MyNumberSetterComponent extends React.PureComponent<Props, State> {
 - If the users clicks on _yes_ or _no_ it will fire the confirmation adding as payload the result of 
 the user selection (go ahead or cancel), and will hide the confirmation dialog.
 
+_./src/components/my-number/setter/my-number-setter-component.tsx_
+
 ```diff
 export class MyNumberSetterComponent extends React.PureComponent<Props, State> { 
   onConfirmationOptionClicked = (result :boolean) => (e) => {
@@ -136,7 +139,7 @@ export class MyNumberSetterComponent extends React.PureComponent<Props, State> {
       <>         
 -       <button onClick={onRequestNewNumber}>Request new number</button>
 +       <button onClick={this.onRequestNewNumberWithConfirmation}>Request new number</button>
-            <div style={{background: '#ADD8E6'}}>
+            <div style={setModalDialogStyle()}>
 ```
 
 - In the container let's wire up the _onUserConfirmNewNumberRequest_ component prop callback
@@ -155,7 +158,8 @@ const mapStateToProps = (state : State) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  onRequestNewNumber: () => dispatch(numberRequestStartAction()),
+- onRequestNewNumber: () => dispatch(numberRequestStartAction())
++ onRequestNewNumber: () => dispatch(numberRequestStartAction()),
 + onUserConfirmNewNumberRequest: (result : boolean) => dispatch(numberRequestUserConfirmationAction(result)),
 })
 
@@ -168,6 +172,8 @@ export const MyNumberSetterContainer = connect(
 - In the sagas section in the _requestNewGeneratedNumber_ let's wait for the confirmation action 
 to be completed and let's check the payload, did the user confirmed? in that case go ahead with
 the number generation.
+
+_./src/sagas/index.ts_
 
 ```diff
 - import { call, put, takeEvery, all, fork } from 'redux-saga/effects';
@@ -186,7 +192,7 @@ function* requestNewGeneratedNumber() {
 
 > Excercise A: The show / hide modal dialog feature is implemented on the component, why not
 trying to add it to the redux life cycle? Once implemented open redux dev tools, check how the
-first solution behaves and the second (time machine), is worth the effor this second implementation?
+first solution behaves and the second (time machine), is worth the effort this second implementation?
 check pros and cons.
 
 

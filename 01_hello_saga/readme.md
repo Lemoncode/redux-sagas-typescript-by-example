@@ -9,13 +9,13 @@ In this sample we are going to:
 - Create a simple service that will return numbers after a given delay (simulating asynchronous calls).
 - Setup redux saga.
 - Create actions to request for a new number, and a second action that will be fired 
-once the the number has been served.
+once the number has been served.
 - Create a saga that will: 
   - Listen for the request_number_start.
   - Execute the getNewNumber service wait for it's reponse.
   - Fire the request_number_completed task.
 - Setup the global saga and update middleware setup to add redux-saga.
-- Update the de numberCollection reducer to listen for this task.
+- Update the numberCollection reducer to listen for this task.
 - Create a number setter component + container.
 
 # Steps
@@ -102,10 +102,10 @@ ReactDOM.render(
 
 
 
-- Let's define two actions, the first on to start a new number request, and the second one
+- Let's define two actions, the first one to start a new number request, and the second one
 to collect the number request once has been completed.
 
-- First we will create the actions Id's, and we will add a helper to get base actions typed::
+- First we will create the actions Id's, and we will add a helper to get base actions typed:
 
 _./src/common/index.ts_
 
@@ -152,7 +152,6 @@ export type MyNumberCollectionState = number[];
 +  switch (action.type) {
 +    case actionIds.GET_NUMBER_REQUEST_COMPLETED:
 +      return handleGetNumberRequestCompleted(state, action.payload);
-+    break;
 +  }
 
   return state;
@@ -217,7 +216,7 @@ import { actionIds } from '../common'
 + }
 ```
 
-> _all_ is an effect combinator, it just run all effects in paralell and wiat for them to be
+> _all_ is an effect combinator, it just run all effects in parallel and wait for them to be
 completed (quite corresponding to _Promise.all_).
 
 > fork let the saga run in parallel (non blocking).
@@ -239,6 +238,13 @@ import { reducers } from './reducers';
 const composeEnhancers = window['__REDUX_DEVTOOLS_EXTENSION__'] || compose;
 
 const sagaMiddleware = createSagaMiddleware();
+
+const store = createStore(reducers,{},
+  compose(
+    applyMiddleware(sagaMiddleware),
+    window['__REDUX_DEVTOOLS_EXTENSION__'] ? window['__REDUX_DEVTOOLS_EXTENSION__']() : f => f
+  )   
+);
 
 + sagaMiddleware.run(rootSaga);
 ```

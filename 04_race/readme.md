@@ -27,7 +27,7 @@ How can we achieve a behavior like this? _race_ is your friend.
 
 # Steps
 
-- We will take as starting point *03_throttle* let's copy the content of that project 
+- We will take as starting point *03_throttle*. Let's copy the content of that project 
 and execute from bash / cmd the following command:
 
 ```bash
@@ -88,14 +88,15 @@ export const MyNumberSetterComponent = (props : Props) =>
 _./src/components/setter/my-number-setter.container.ts_
 
 ```diff
-import {numberRequestStartAction} from '../../../actions';
+- import {numberRequestStartAction} from '../../../actions';
 + import {numberRequestStartAction, cancelOnGoingNumberRequestAction} from '../../../actions';
 
 const mapStateToProps = (state : State) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  onRequestNewNumber: () => dispatch(numberRequestStartAction())
+-  onRequestNewNumber: () => dispatch(numberRequestStartAction())
++  onRequestNewNumber: () => dispatch(numberRequestStartAction()),
 +  onCancelRequest: () => dispatch(cancelOnGoingNumberRequestAction()),
 })
 ```
