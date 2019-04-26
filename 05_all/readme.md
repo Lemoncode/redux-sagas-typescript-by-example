@@ -57,7 +57,7 @@ to append the higher number generated.
 _./src/sagas/index.ts_
 
 ```diff
-- import { generateHigherNewNumber } from '../services';
+- import { generateNewNumber } from '../services';
 + import { generateNewNumber, generateHigherNewNumber } from '../services';
 
 // (...)

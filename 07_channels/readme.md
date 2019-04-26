@@ -40,12 +40,12 @@ npm start
 - Now we will change directory to front end and start working on that.
 
 - Let's start by working on the saga that will read from the socket on por 1337 (to avoid
-adding extra steps to this sample we won't bother about configuring enviroment variables
+adding extra steps to this sample we won't bother about configuring environment variables
 for this project).
 
-Le'ts get started
+Let's get started
 
-- For this sample we will consume a websocket feed, First let's install _socket.io_ library (under frontend folder) and it's type definition:
+- For this sample we will consume a websocket feed. First let's install _socket.io_ library (under frontend folder) and it's type definition:
 
 ```bash
 npm install socket.io-client --save
@@ -207,7 +207,7 @@ export class CurrencyTableComponent extends React.PureComponent<Props> {
 }
 ```
 
-- Let's create a container we will call it currency-table.container.tsx_,it will connect
+- Let's create a container we will call it _currency-table.container.tsx_,it will connect
 the _START_SOCKET_SUBSCRIPTION_ action creator with the _startSocketConnection_ 
 component prop callback.
 
@@ -354,7 +354,7 @@ function connect() {
 _./src/sagas/socket.ts_
 
 ```diff
-- import { all, fork, take, call, put } from "redux-saga/effects";
+- import { all, fork, take, call } from 'redux-saga/effects';
 + import { all, fork, take, call, put } from "redux-saga/effects";
 
 function subscribe(socket) {
@@ -385,7 +385,7 @@ function subscribe(socket) {
 +}
 ```
 
-- Altough in this task we are going to read and not write, we will create an
+- Although in this task we are going to read and not write, we will create an
   IO saga that would be able to launch read and write tasks.
 
 _./src/sagas/socket.ts_
@@ -406,26 +406,26 @@ function* read(socket) {
 ```
 
 - We will call this _handleIO_ saga from the _flow_ saga (remember to add the redux-saga
-needed imports, e.g. _cancel_.
+needed imports, e.g. _cancel_).
 
 ```diff
 - import { all, fork, take, call, put } from "redux-saga/effects";
 + import { all, fork, take, call, put, cancel } from "redux-saga/effects";
 
 function* flow() {
-	while(true) {
-		yield take(actionIds.START_SOCKET_SUBSCRIPTION);
-		const {socket, error} = yield call(connect);
-		if(socket) {
-+			console.log('connection to socket succeeded');
+  while(true) {
+    yield take(actionIds.START_SOCKET_SUBSCRIPTION);
+    const {socket, error} = yield call(connect);
+    if(socket) {
+      console.log('connection to socket succeeded');
 +     const ioTask = yield fork(handleIO, socket);
 +     yield take(actionIds.STOP_SOCKET_SUBSCRIPTION);
 +     yield cancel(ioTask);
 +     socket.disconnect();    
-		} else {
-			console.log('error connecting');
-		}   
-	}
+    } else {
+      console.log('error connecting');
+    }  
+  }
 }
 ```
 
@@ -469,7 +469,7 @@ export const actionIds = {
 }
 ```
 
-- Let's add an action creator Let's add an action creator _onSocketMessageReceived_ (append
+- Let's add an action creator _onSocketMessageReceived_ (append
 this code at the end of the file)
 
 _./src/actions/index.ts_
@@ -525,7 +525,8 @@ export interface State {
 };
 
 export const reducers = combineReducers<State>({
-  myNumberCollectionState: myNumberCollectionReducer,
+-  myNumberCollectionState: myNumberCollectionReducer
++  myNumberCollectionState: myNumberCollectionReducer,
 +  currenciesState: currenciesReducer,
 });
 ```
