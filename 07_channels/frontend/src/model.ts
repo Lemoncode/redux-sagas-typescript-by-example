@@ -1,5 +1,5 @@
 export interface CurrencyUpdate {
   id: string;
-  currency : string;
+  currency: string;
   change: string;
 }

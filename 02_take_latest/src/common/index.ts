@@ -7,5 +7,5 @@ export const actionIds = {
 
 export interface BaseAction {
   type: string;
-  payload: any;
+  payload?;
 }

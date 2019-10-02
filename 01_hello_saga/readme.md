@@ -105,7 +105,7 @@ export const actionIds = {
 
 export interface BaseAction {
   type : string;
-  payload: any;
+  payload?;
 }
 ```
 - Le't s define the action creators:

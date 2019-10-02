@@ -1,16 +1,20 @@
-import {connect} from 'react-redux';
-import {State} from '../../reducers';
-import {CurrencyTableComponent} from './currency-table.component';
-import {startSocketSubscriptionAction, stopSocketSubscriptionAction} from '../../actions';
+import { connect } from 'react-redux';
+import { CurrencyTableComponent } from './currency-table.component';
+import {
+  startSocketSubscriptionAction,
+  stopSocketSubscriptionAction,
+} from '../../actions';
+import { State } from '../../reducers';
 
-const mapStateToProps = (state : State) => ({
+const mapStateToProps = (state: State) => ({
   currencyCollection: state.currenciesState,
-})
+});
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   connectCurrencyUpdateSockets: () => dispatch(startSocketSubscriptionAction()),
-  disconnectCurrencyUpdateSockets: () => dispatch(stopSocketSubscriptionAction()),
-})
+  disconnectCurrencyUpdateSockets: () =>
+    dispatch(stopSocketSubscriptionAction()),
+});
 
 export const CurrencyTableContainer = connect(
   mapStateToProps,

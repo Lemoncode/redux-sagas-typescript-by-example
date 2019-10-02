@@ -2,15 +2,16 @@ import * as ioClient from 'socket.io-client';
 import { all, fork, take, call, put, cancel } from 'redux-saga/effects';
 import { actionIds } from '../common';
 import { eventChannel } from 'redux-saga';
-import {currencyUpdateReceivedAction} from '../actions'
+import { currencyUpdateReceivedAction } from '../actions';
 
 function connect() {
-  // Real life project extract this into an API module  
+  // Real life project extract this into an API module
   const socket = ioClient.connect('http://localhost:1337/', null);
-  
+
   // We need to wrap the socket connection into a promise (socket returs callback)
   return new Promise((resolve, reject) => {
-    socket.on('connect', () => {            
+    socket.on('connect', () => {
+      socket.emit('messages');
       resolve({ socket });
     });
 
@@ -23,7 +24,7 @@ function connect() {
 
 function subscribe(socket) {
   return eventChannel(emit => {
-    socket.on('currency', (message) => {
+    socket.on('currency', message => {
       console.log(message);
       emit(currencyUpdateReceivedAction(message));
     });
@@ -32,10 +33,12 @@ function subscribe(socket) {
     });
     socket.on('error', error => {
       // TODO: handle
-      console.log('Error while trying to connect, TODO: proper handle of this event');
+      console.log(
+        'Error while trying to connect, TODO: proper handle of this event'
+      );
     });
 
-    return () => { };
+    return () => {};
   });
 }
 
@@ -47,32 +50,27 @@ function* read(socket) {
   }
 }
 
+function* flow() {
+  while (true) {
+    yield take(actionIds.START_SOCKET_SUBSCRIPTION);
+    const { socket, error } = yield call(connect);
+    if (socket) {
+      console.log('connection to socket succeeded');
+      const ioTask = yield fork(handleIO, socket);
+      yield take(actionIds.STOP_SOCKET_SUBSCRIPTION);
+      yield cancel(ioTask);
+      socket.disconnect();
+    } else {
+      console.log('error connecting');
+    }
+  }
+}
+
 function* handleIO(socket) {
   yield fork(read, socket);
   // TODO in the future we could add here a write fork
 }
 
-
-function* flow() {
-	while(true) {
-		yield take(actionIds.START_SOCKET_SUBSCRIPTION);
-		const {socket, error} = yield call(connect);
-		if(socket) {
-      console.log('connection to socket succeeded');
-      const ioTask = yield fork(handleIO, socket);
-      yield take(actionIds.STOP_SOCKET_SUBSCRIPTION);
-      yield cancel(ioTask);      
-		} else {
-			console.log('error connecting');
-    }
-    socket.disconnect();    
-	}
+export function* socketRootSaga() {
+  yield all([fork(flow)]);
 }
-
-export function *socketRootSaga() {
-	yield all([
-		fork(flow),
-	])
-}
-
-

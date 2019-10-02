@@ -7,33 +7,36 @@ interface Props {
   currencyCollection: CurrencyUpdate[];
 }
 
-export class CurrencyTableComponent extends React.PureComponent<Props> {
-  componentWillMount() {
-    this.props.connectCurrencyUpdateSockets();
-  }
+export const CurrencyTableComponent: React.FunctionComponent<Props> = props => {
+  const {
+    connectCurrencyUpdateSockets,
+    disconnectCurrencyUpdateSockets,
+    currencyCollection
+  } = props;
 
-  componentWillUnmount() {
-    this.props.disconnectCurrencyUpdateSockets();
-  }
+  React.useEffect(() => {
+    connectCurrencyUpdateSockets();
+    return () => {
+      disconnectCurrencyUpdateSockets();
+    };
+  }, []);
 
-  render() {
-    return (
-      <table>
-        <thead>
-          <tr>
-            <th>Currency</th>
-            <th>Change</th>
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Currency</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        {currencyCollection.map(currency => (
+          <tr key={currency.id}>
+            <td>{currency.currency}</td>
+            <td>{currency.change}</td>
           </tr>
-        </thead>
-        <tbody>
-          {this.props.currencyCollection.map(currency => (
-            <tr key={currency.id}>
-              <td>{currency.currency}</td>
-              <td>{currency.change}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )
-  }
-}
+        ))}
+      </tbody>
+    </table>
+  );
+};

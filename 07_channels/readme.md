@@ -61,33 +61,32 @@ _./common/index.ts_
 
 ```diff
 export const actionIds = {
-  GET_NUMBER_REQUEST_START: '[0] Request a new number to the NumberGenerator async service.',
-  GET_NUMBER_REQUEST_COMPLETED: '[1] NumberGenerator async service returned a new number.',
-+  START_SOCKET_SUBSCRIPTION: '[2] Start listening to the web socket',
-+  STOP_SOCKET_SUBSCRIPTION: '[3] Close socket connection',
+  GET_NUMBER_REQUEST_START:
+    '[0] Request a new number to the NumberGenerator async service.',
+  GET_NUMBER_REQUEST_COMPLETED:
+    '[1] NumberGenerator async service returned a new number.',
+  CANCEL_ONGOING_NUMBER_REQUEST: '[2] Cancelling and on going number request',
+  GET_NUMBER_REQUEST_USER_CONFIRMATION:
+    '[3] User has to confirm or cancel the number request before it gets fired',
++ START_SOCKET_SUBSCRIPTION: '[4] Start listening to the web socket',
++ STOP_SOCKET_SUBSCRIPTION: '[5] Close socket connection',
 }
-
-export interface BaseAction {
-  type : string;
-  payload: any;
-}
+...
 ```
 
 - Now let's define the action creators (real life project would pass extra params in this 
 action creators). Append this content to the bottom of the file.
 
-_./actions/index.ts_
+_./actions.ts_
 
-```typescript
-export const startSocketSubscriptionAction : () => BaseAction = () => ({
- type: actionIds.START_SOCKET_SUBSCRIPTION,
- payload: null,
-});
+```diff
++ export const startSocketSubscriptionAction : () => BaseAction = () => ({
++  type: actionIds.START_SOCKET_SUBSCRIPTION,
++ });
 
-export const stopSocketSubscriptionAction : () => BaseAction = () => ({
- type: actionIds.STOP_SOCKET_SUBSCRIPTION,
- payload: null,
-});
++ export const stopSocketSubscriptionAction : () => BaseAction = () => ({
++  type: actionIds.STOP_SOCKET_SUBSCRIPTION,
++ });
 ```
 
 - Let's start implementing the _socket_ sagas.
@@ -161,16 +160,15 @@ export function *socketRootSaga() {
 _./src/sagas/index.ts_
 
 ```diff
-import { actionIds } from '../common'
-+ import { socketRootSaga } from './socket'
+import { all, fork } from 'redux-saga/effects';
+import { watchNewGeneratedNumberRequestStart } from './number-collection.sagas';
++ import { socketRootSaga } from './socket';
 
-// Register all your watchers
 export const rootSaga = function* root() {
-  yield all([
-    fork(watchNewGeneratedNumberRequestStart),
-+   fork(socketRootSaga),    
-  ])
-}
+- yield all([fork(watchNewGeneratedNumberRequestStart)]);
++ yield all([fork(watchNewGeneratedNumberRequestStart), fork(socketRootSaga)]);
+};
+
 ```
 
 - Right now let's make a quick stop and check that we are able to establish a connection with the websocket.
@@ -186,61 +184,70 @@ _./src/components/currency-table/currency-table.component.tsx_
 import * as React from 'react';
 
 interface Props {
-  connectCurrencyUpdateSockets : () => void;
-  disconnectCurrencyUpdateSockets : () => void;
+  connectCurrencyUpdateSockets: () => void;
+  disconnectCurrencyUpdateSockets: () => void;
 }
 
-export class CurrencyTableComponent extends React.PureComponent<Props> {
-  componentWillMount() {
-    this.props.connectCurrencyUpdateSockets();  
-  }
+export const CurrencyTableComponent: React.FunctionComponent<Props> = props => {
+  const {
+    connectCurrencyUpdateSockets,
+    disconnectCurrencyUpdateSockets,
+  } = props;
 
-  componentWillUnmount() {
-    this.props.disconnectCurrencyUpdateSockets();  
-  }
+  React.useEffect(() => {
+    connectCurrencyUpdateSockets();
+    return () => {
+      disconnectCurrencyUpdateSockets();
+    };
+  }, []);
 
-  render() {
-    return (
-      <h3>Currency Table component</h3>
-    )
-  }
-}
+  return <h3>Currency Table component</h3>;
+};
+
 ```
 
 - Let's create a container we will call it _currency-table.container.tsx_,it will connect
 the _START_SOCKET_SUBSCRIPTION_ action creator with the _startSocketConnection_ 
 component prop callback.
 
-_./src/components/currency-table/currency-table.container.ts_
+_./src/components/currency-table/currency-table.container.tsx_
 
 ```typescript
-import {connect} from 'react-redux';
-import {State} from '../../reducers';
-import {CurrencyTableComponent} from './currency-table.component';
-import {startSocketSubscriptionAction, stopSocketSubscriptionAction} from '../../actions';
+import { connect } from 'react-redux';
+import { CurrencyTableComponent } from './currency-table.component';
+import {
+  startSocketSubscriptionAction,
+  stopSocketSubscriptionAction,
+} from '../../actions';
 
-const mapStateToProps = (state : State) => ({
-})
-
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   connectCurrencyUpdateSockets: () => dispatch(startSocketSubscriptionAction()),
-  disconnectCurrencyUpdateSockets: () => dispatch(stopSocketSubscriptionAction()),
-})
+  disconnectCurrencyUpdateSockets: () =>
+    dispatch(stopSocketSubscriptionAction()),
+});
 
 export const CurrencyTableContainer = connect(
-  mapStateToProps,
+  null,
   mapDispatchToProps
 )(CurrencyTableComponent);
 ```
 
 - Let's add the _CurrencyTableContainer_ to the components barrel.
 
+_./src/components/currency-table/index.ts_
+
+```typescript
+export * from './currency-table.container';
+
+```
+
 _./src/components/index.ts_
 
 ```diff
-export {MyNumberBrowserContainer} from './my-number/browser/my-number-container';
-export {MyNumberSetterContainer} from './my-number/setter/my-number-setter.container';
-+ export {CurrencyTableContainer} from './currency-table/currency-table.container';
+export * from './viewer';
+export * from './setter';
++ export * from './currency-table';
+
 ```
 
 - Let's add this container to the _main.tsx_ main component:
@@ -248,20 +255,24 @@ export {MyNumberSetterContainer} from './my-number/setter/my-number-setter.conta
 _./src/main.tsx_
 
 ```diff
-- import { MyNumberBrowserContainer, MyNumberSetterContainer } from './components';
-+ import { MyNumberBrowserContainer, MyNumberSetterContainer, CurrencyTableContainer } from './components';
-//(...)
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+- import { NumberViewerContainer, NumberSetterContainer } from './components';
++ import { NumberViewerContainer, NumberSetterContainer, CurrencyTableContainer } from './components';
+import { Provider } from 'react-redux';
+import { store } from './store';
 
 ReactDOM.render(
   <Provider store={store}>
     <>
-+     <CurrencyTableContainer/>
-+     <br/>    
-      <MyNumberSetterContainer />
-      <MyNumberBrowserContainer />    
++     <CurrencyTableContainer />
+      <NumberSetterContainer />
+      <NumberViewerContainer />
     </>
   </Provider>,
-  document.getElementById('root'));
+  document.getElementById('root')
+);
+
 ```
 
 - Let's launch the project and include breakpoints in the _socket_ saga to check that
@@ -308,7 +319,7 @@ Let's add this function right after the _connect_ function
 _./src/sagas/socket.ts_
 
 ```diff
-+ import { eventChannel } from "redux-saga";
++ import { eventChannel } from 'redux-saga';
 
 function connect() {
   // Real life project extract this into an API module
@@ -445,14 +456,15 @@ npm start
 
 - We are going to add a simple typescript entity that will hold the currency deltas.
 
-_./src/model/index.ts_
+_./src/model.ts_
 
 ```typescript
 export interface CurrencyUpdate {
   id: string;
-  currency : string;
+  currency: string;
   change: string;
 }
+
 ```
 
 - Let's add a new action id (currency udpate):
@@ -461,27 +473,32 @@ _./src/common/index.ts_
 
 ```diff
 export const actionIds = {
-  GET_NUMBER_REQUEST_START: '[0] Request a new number to the NumberGenerator async service.',
-  GET_NUMBER_REQUEST_COMPLETED: '[1] NumberGenerator async service returned a new number.',
-  START_SOCKET_SUBSCRIPTION: '[2] Start listening to the web socket',
-  STOP_SOCKET_SUBSCRIPTION: '[3] Close socket connection',
-+  CURRENCY_UPDATE_RECEIVED: '[5] Got a currency update from the server',
+  GET_NUMBER_REQUEST_START:
+    '[0] Request a new number to the NumberGenerator async service.',
+  GET_NUMBER_REQUEST_COMPLETED:
+    '[1] NumberGenerator async service returned a new number.',
+  CANCEL_ONGOING_NUMBER_REQUEST: '[2] Cancelling and on going number request',
+  GET_NUMBER_REQUEST_USER_CONFIRMATION:
+    '[3] User has to confirm or cancel the number request before it gets fired',
+  START_SOCKET_SUBSCRIPTION: '[4] Start listening to the web socket',
+  STOP_SOCKET_SUBSCRIPTION: '[5] Close socket connection',
++ CURRENCY_UPDATE_RECEIVED: '[6] Got a currency update from the server',
 }
 ```
 
 - Let's add an action creator _onSocketMessageReceived_ (append
 this code at the end of the file)
 
-_./src/actions/index.ts_
+_./src/actions.ts_
 
-```typescript
-import { CurrencyUpdate } from '../model';
+```diff
++ import { CurrencyUpdate } from './model';
 // (...)
 
-export const currencyUpdateReceivedAction : (update : CurrencyUpdate) => BaseAction = (update) => ({
-  type: actionIds.CURRENCY_UPDATE_RECEIVED,
-  payload: update,
- });
++ export const currencyUpdateReceivedAction : (update : CurrencyUpdate) => BaseAction = (update) => ({
++   type: actionIds.CURRENCY_UPDATE_RECEIVED,
++   payload: update,
++ });
 ```
 
 - Let's create a _currencies.reducer.ts_
@@ -515,20 +532,23 @@ const handleCurrencyUpdateCompleted = (state : CurrenciesState, currencyUpdate :
 __./src/reducers/index.ts_
 
 ```diff
-import { combineReducers} from 'redux';
-import { myNumberCollectionReducer, MyNumberCollectionState } from './my-number.reducer';
+import { combineReducers } from 'redux';
+import {
+  numberCollectionReducer,
+  NumberCollectionState,
+} from './number-collection.reducer';
 + import { currenciesReducer, CurrenciesState} from './currencies.reducer';
 
 export interface State {
-  myNumberCollectionState : MyNumberCollectionState;
-+  currenciesState : CurrenciesState;
-};
+  numberCollection: NumberCollectionState;
++ currenciesState : CurrenciesState;
+}
 
-export const reducers = combineReducers<State>({
--  myNumberCollectionState: myNumberCollectionReducer
-+  myNumberCollectionState: myNumberCollectionReducer,
-+  currenciesState: currenciesReducer,
+export const rootReducers = combineReducers<State>({
+  numberCollection: numberCollectionReducer,
++ currenciesState: currenciesReducer,
 });
+
 ```
 
 
@@ -574,33 +594,34 @@ interface Props {
 _./src/components/currency-table/currency-table.component.tsx_
 
 ```diff
-  render() {
-    return (
--      <h3>Currency Table component</h3>
-+      <table>
-+         <thead>
-+          <tr>
-+            <th>
-+              Currency
-+            </th>
-+            <th>
-+              Change
-+            </th>
-+          </tr>
-+        </thead>
-+        <tbody>
-+          {this.props.currencyCollection.map(
-+            currency =>
-+              <tr key={currency.id}>
-+                <td>{currency.currency}</td>
-+                <td>{currency.change}</td>
-+              </tr>
-+          )
-+          }
-+        </tbody>
-+      </table>
-    )
-  }
+...
+
+  const {
+    connectCurrencyUpdateSockets,
+    disconnectCurrencyUpdateSockets,
++   currencyCollection
+  } = props;
+
+- return <h3>Currency Table component</h3>;
++ return (
++   <table>
++     <thead>
++       <tr>
++         <th>Currency</th>
++         <th>Change</th>
++       </tr>
++     </thead>
++     <tbody>
++       {currencyCollection.map(currency => (
++         <tr key={currency.id}>
++           <td>{currency.currency}</td>
++           <td>{currency.change}</td>
++         </tr>
++       ))}
++     </tbody>
++   </table>
++ );
+
 ```
 
 - Let's connect the currency container with the reducer property (currencies).
@@ -608,14 +629,30 @@ _./src/components/currency-table/currency-table.component.tsx_
 _./src/components/currency-table/currency-table.container_
 
 ```diff
-import {connect} from 'react-redux';
-import {State} from '../../reducers';
-import {CurrencyTableComponent} from './currency-table.component';
-import {startSocketSubscriptionAction, stopSocketSubscriptionAction} from '../../actions';
+import { connect } from 'react-redux';
+import { CurrencyTableComponent } from './currency-table.component';
+import {
+  startSocketSubscriptionAction,
+  stopSocketSubscriptionAction,
+} from '../../actions';
++ import { State } from '../../reducers';
 
-const mapStateToProps = (state : State) => ({
-+   currencyCollection: state.currenciesState,  
-})
++ const mapStateToProps = (state: State) => ({
++   currencyCollection: state.currenciesState,
++ });
+
+const mapDispatchToProps = dispatch => ({
+  connectCurrencyUpdateSockets: () => dispatch(startSocketSubscriptionAction()),
+  disconnectCurrencyUpdateSockets: () =>
+    dispatch(stopSocketSubscriptionAction()),
+});
+
+export const CurrencyTableContainer = connect(
+- null,
++ mapStateToProps,
+  mapDispatchToProps
+)(CurrencyTableComponent);
+
 ```
 
 - Let's run the sample.
