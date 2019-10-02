@@ -4,7 +4,7 @@
   "description": "In this sample we setup the basic plumbing to \"build\" our project and launch it in a dev server.",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server  --mode development --inline --hot --open",
+    "start": "webpack-dev-server  --mode development --inline --hot",
     "build": "webpack  --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -36,6 +36,6 @@
     "react-dom": "^16.6.3",
     "react-redux": "^6.0.0",
     "redux": "^4.0.1",
-    "redux-saga": "^0.16.2"
+    "redux-saga": "^1.1.1"
   }
 }

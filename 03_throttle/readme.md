@@ -34,14 +34,20 @@ npm install
 - On the function _watchNewGeneratedNumberRequestStart_ Let's replace _takeLatest_ with 
 _throttle_ (we need to indicate:
 
-```diff
-- import { call, put, takeEvery, all, fork } from 'redux-saga/effects';
-+ import { call, put, throttle, all, fork } from 'redux-saga/effects';
-// (...)
+_./src/sagas/number-collection.sagas.ts_
 
-function* watchNewGeneratedNumberRequestStart() {
--  yield takeEvery(actionIds.GET_NUMBER_REQUEST_START, requestNewGeneratedNumber);
-+  yield throttle(5000, actionIds.GET_NUMBER_REQUEST_START, requestNewGeneratedNumber);
+```diff
+- import { call, put, takeLatest } from 'redux-saga/effects';
++ import { call, put, throttle } from 'redux-saga/effects';
+...
+
+export function* watchNewGeneratedNumberRequestStart() {
+- yield takeEvery(
++ yield throttle(
++   5000,
+    actionIds.GET_NUMBER_REQUEST_START,
+    requestNewGeneratedNumber
+  );
 }
 ```
 
