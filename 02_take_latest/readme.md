@@ -25,15 +25,22 @@ npm install
 - On the function _watchNewGeneratedNumberRequestStart_ Let's replace _takeEvery_ with 
 _takeLatest_:
 
+_./src/sagas/number-collection.sagas.ts_
+
 ```diff
-- import { call, put, takeEvery, all, fork } from 'redux-saga/effects';
-+ import { call, put, takeLatest, all, fork } from 'redux-saga/effects';
+- import { call, put, takeEvery } from 'redux-saga/effects';
++ import { call, put, takeLatest } from 'redux-saga/effects';
 // (...)
 
-function* watchNewGeneratedNumberRequestStart() {
--  yield takeEvery(actionIds.GET_NUMBER_REQUEST_START, requestNewGeneratedNumber);
-+  yield takeLatest(actionIds.GET_NUMBER_REQUEST_START, requestNewGeneratedNumber);
+export function* watchNewGeneratedNumberRequestStart() {
+- yield takeEvery(
++ yield takeLatest(
+    actionIds.GET_NUMBER_REQUEST_START,
+    requestNewGeneratedNumber
+  );
 }
+...
+
 ```
 
 - Now if we run the project and start clicking quite fast and repeatedly on the _request new number_
