@@ -44,74 +44,77 @@ export const actionIds = {
   GET_NUMBER_REQUEST_COMPLETED: '[1] NumberGenerator async service returned a new number.',
 + CANCEL_ONGOING_NUMBER_REQUEST: '[2] Cancelling and on going number request',  
 }
-
-export interface BaseAction {
-  type : string;
-  payload: any;
-}
+...
 ```
 
 - Now let's create the action creator that will generate the cancel action (append to the body of the
 action index file):
 
-_./src/actions/index.ts_
+_./src/actions.ts_
 
-```typescript
-export const cancelOnGoingNumberRequestAction : () => BaseAction = () => ({
-  type: actionIds.CANCEL_ONGOING_NUMBER_REQUEST,
-  payload: null,
- });
+```diff
+
++ export const cancelOnGoingNumberRequestAction: () => BaseAction = () => ({
++   type: actionIds.CANCEL_ONGOING_NUMBER_REQUEST,
++   payload: null,
++ });
 ```
 
 - Let's create add a new button the the _my-number-setter_ component that will allow us
 cancelling the number_request, and create the callback prop to fire the action.
 
-_./src/components/setter/my-number-setter.component.ts_
+_./src/components/setter/number-setter.component.ts_
 
 ```diff
 import * as React from 'react';
 
 interface Props {
   onRequestNewNumber: () => void;
-+  onCancelRequest: () => void;
++ onCancelRequest: () => void;
 }
 
-export const MyNumberSetterComponent = (props : Props) =>
+export const NumberSetterComponent: React.FunctionComponent<Props> = props => (
 + <>
-  <button onClick={props.onRequestNewNumber}>Request new number</button>
-+ <button onClick={props.onCancelRequest}>Cancel number request</button> 
-+ </>  
+    <button onClick={props.onRequestNewNumber}>Request new number</button>
++   <button onClick={props.onCancelRequest}>Cancel number request</button>
++ </>
+);
+ 
 ```
 
 - Let's configure the container.
 
-_./src/components/setter/my-number-setter.container.ts_
+_./src/components/setter/number-setter.container.ts_
 
 ```diff
-- import {numberRequestStartAction} from '../../../actions';
-+ import {numberRequestStartAction, cancelOnGoingNumberRequestAction} from '../../../actions';
+import { connect } from 'react-redux';
+- import { numberRequestStartAction } from '../../actions';
++ import { numberRequestStartAction, cancelOnGoingNumberRequestAction } from '../../actions';
+import { NumberSetterComponent } from './number-setter.component';
 
-const mapStateToProps = (state : State) => ({
-})
+const mapDispatchToProps = dispatch => ({
+  onRequestNewNumber: () => dispatch(numberRequestStartAction()),
++ onCancelRequest: () => dispatch(cancelOnGoingNumberRequestAction()),
+});
 
-const mapDispatchToProps = (dispatch) => ({
--  onRequestNewNumber: () => dispatch(numberRequestStartAction())
-+  onRequestNewNumber: () => dispatch(numberRequestStartAction()),
-+  onCancelRequest: () => dispatch(cancelOnGoingNumberRequestAction()),
-})
 ```
 
 - Let's restore in the sagas the task watcher to a take every:
 
-_./src/sagas/index.ts_
+_./src/sagas/number-collection.sagas.ts_
 ```diff
-- import { call, put, throttle, all, fork } from 'redux-saga/effects';
-+ import { call, put, takeEvery, all, fork } from 'redux-saga/effects';
+- import { call, put, throttle } from 'redux-saga/effects';
++ import { call, put, takeEvery } from 'redux-saga/effects';
 
-function* watchNewGeneratedNumberRequestStart() {
--  yield throttle(5000, actionIds.GET_NUMBER_REQUEST_START, requestNewGeneratedNumber);
-+  yield takeEvery(actionIds.GET_NUMBER_REQUEST_START, requestNewGeneratedNumber);
+export function* watchNewGeneratedNumberRequestStart() {
+- yield throttle(
++ yield takeEvery(
+-   5000,
+    actionIds.GET_NUMBER_REQUEST_START,
+    requestNewGeneratedNumber
+  );
 }
+
 ```
 
 - Let's add some extra sleep timeout to the number request service.
@@ -131,16 +134,16 @@ export const generateNewNumber = () : Promise<number> => {
 _CANCEL_ONGOING_NUMBER_REQUEST_, if cancel wins it won't propagate the new number request
 result.
 
-_./src/sagas/index.ts_
+_./src/sagas/number-collection.sagas.ts_
 
 ```diff
-- import { call, put, takeEvery, all, fork} from 'redux-saga/effects';
-+ import { call, put, takeEvery, all, fork, race, take } from 'redux-saga/effects';
-// (...)
+- import { call, put, takeEvery } from 'redux-saga/effects';
++ import { call, put, takeEvery, race, take } from 'redux-saga/effects';
+...
 
 function* requestNewGeneratedNumber() {
 -  const generatedNumber = yield call(generateNewNumber);
--  yield put(numberRequestCompletedAction(generatedNumber))
+-  yield put(numberRequestCompletedAction(generatedNumber));
 +  const {generatedNumber, cancel} = yield race({
 +    generatedNumber: call(generateNewNumber),
 +    cancel: take(actionIds.CANCEL_ONGOING_NUMBER_REQUEST)

@@ -55,6 +55,8 @@ export function* watchNewGeneratedNumberRequestStart() {
 we can see that number _1_ is generated and number _2_ is generated after 5 seconds (one of
 the quick clicks have been wiped from the buffer).
 
+> NOTE: Try throttle and debounce with 500 ms
+
 ```
 npm start
 ```
