@@ -26,7 +26,7 @@ npm install
 - We are going to create a new service called *higher_number_generator.service.ts* this asynchronous service
 will generate number above 100.
 
-_./src/services/higher-number-generator.service.ts_
+_./src/api/higher-number-generator.api.ts_
 
 ```typescript
 let initialNumber = 100;
@@ -45,18 +45,20 @@ export const generateHigherNewNumber = () : Promise<number> => {
 
 - Let's add this new service to the barrel.
 
-_./src/services/index.ts_
+_./src/api/index.ts_
 
 ```diff
-export * from './number-generator.service';
-+ export * from './higher-number-generator.service';
+export * from './number-generator.api';
++ export * from './higher-number-generator.api';
 ```
 - Now in the sagas let's add an _all_ operator to call both services, and add a new task call 
 to append the higher number generated.
 
-_./src/sagas/index.ts_
+_./src/sagas/number-collection.sagas.ts_
 
 ```diff
+- import { call, put, takeEvery, race, take } from 'redux-saga/effects';
++ import { call, put, takeEvery, all } from 'redux-saga/effects';
 - import { generateNewNumber } from '../services';
 + import { generateNewNumber, generateHigherNewNumber } from '../services';
 
@@ -64,13 +66,19 @@ _./src/sagas/index.ts_
 
 
 function* requestNewGeneratedNumber() {
--  const generatedNumber = yield call(generateNewNumber);
-+  const {generatedNumber, generatedHigherNumber} = yield all({
-+       generatedNumber: call(generateNewNumber),
-+       generatedHigherNumber: call(generateHigherNewNumber),
-+  })
-  yield put(numberRequestCompletedAction(generatedNumber))
-+ yield put(numberRequestCompletedAction(generatedHigherNumber))
+- const { generatedNumber, cancel } = yield race({
+-   generatedNumber: call(generateNewNumber),
+-   cancel: take(actionIds.CANCEL_ONGOING_NUMBER_REQUEST),
+- });
++ const { generatedNumber, generatedHigherNumber } = yield all({
++   generatedNumber: call(generateNewNumber),
++   generatedHigherNumber: call(generateHigherNewNumber),
++ });
+- if (!cancel) {
+    yield put(numberRequestCompletedAction(generatedNumber));
++   yield put(numberRequestCompletedAction(generatedHigherNumber));
+- }
+  
 }
 ```
 
