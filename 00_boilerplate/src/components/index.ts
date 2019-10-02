@@ -1,1 +1,1 @@
-export {MyNumberBrowserContainer} from './my-number/browser/my-number-container';
+export * from './viewer';
