@@ -292,7 +292,7 @@ _./src/components/index.ts_
 
 ```diff
 export * from './viewer';
-+ export * from './viewer';
++ export * from './setter';
 
 ```
 
